@@ -29,18 +29,61 @@ class _BookPagesPageState extends State<BookPagesPage> {
   // Fetch pages from Firestore
   Future<void> fetchPages() async {
     try {
-      // Fetch pages for the selected book
+      // Fetch the book details first to get the page IDs
+      final bookSnapshot = await FirebaseFirestore.instance
+          .collection('books')
+          .doc(widget.bookId)
+          .get();
+
+      if (!bookSnapshot.exists) {
+        setState(() {
+          isLoading = false;
+        });
+        return;
+      }
+
+      // Get the page IDs from the book document
+      final pageIds = List<String>.from(bookSnapshot.data()?['pages'] ?? []);
+
+      if (pageIds.isEmpty) {
+        setState(() {
+          isLoading = false;
+        });
+        return;
+      }
+
+      // Fetch the pages from the 'pages' collection using the page IDs
       final pagesSnapshot = await FirebaseFirestore.instance
           .collection('pages')
-          .where('bookId', isEqualTo: widget.bookId) // Filter by bookId
+          .where(FieldPath.documentId, whereIn: pageIds)
           .get();
 
       final pagesData = pagesSnapshot.docs.map((doc) {
         final data = doc.data();
+
+        // Ensure all fields are not null and provide fallbacks if needed
+        final picture = data['picture'] ?? ''; // Fallback for picture
+        final text = data['text'] ?? ''; // Fallback for text
+        final translations = data['translations'] ?? [];
+
+        // If translations exist, you could provide fallback for different languages
+        String translatedText = text; // Default to the original text
+
+        if (translations.isNotEmpty) {
+          // Assuming you want to get the translation in Arabic for example
+          final arabicTranslation = translations.firstWhere(
+              (translation) => translation['language'] == 'arabic',
+              orElse: () => null);
+          if (arabicTranslation != null) {
+            translatedText = arabicTranslation['text'] ??
+                text; // Use Arabic translation if available
+          }
+        }
+
         return {
           'id': doc.id,
-          'image': data['image'] ?? '', // Provide a fallback if image is null
-          'text': data['text'] ?? '', // Provide a fallback if text is null
+          'image': picture, // Fallback to an empty string if picture is null
+          'text': translatedText, // Use translated text or default text
         };
       }).toList();
 
@@ -108,10 +151,10 @@ class _BookPagesPageState extends State<BookPagesPage> {
                     // Image on the left
                     Expanded(
                       flex: 1,
-                      child: page['image'] != ''
+                      child: page['image'] != '' && page['image'] != null
                           ? Image.network(page['image'], fit: BoxFit.cover)
                           : Image.asset(
-                              'assets/fallback_image.png'), // Fallback image
+                              'assets/fallback_image.jpeg'), // Fallback image
                     ),
                     // Text on the right
                     Expanded(
@@ -137,11 +180,11 @@ class _BookPagesPageState extends State<BookPagesPage> {
                     // Image on top
                     Expanded(
                       flex: 1,
-                      child: page['image'] != ''
+                      child: page['image'] != '' && page['image'] != null
                           ? Image.network(page['image'],
                               fit: BoxFit.cover, width: double.infinity)
                           : Image.asset(
-                              'assets/fallback_image.png'), // Fallback image
+                              'assets/fallback_image.jpeg'), // Fallback image
                     ),
                     // Text on the bottom
                     Expanded(

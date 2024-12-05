@@ -2,8 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:lingo_tales/pages/auth/authservice.dart';
 import 'package:lingo_tales/pages/auth/login_page.dart';
-import 'package:lingo_tales/pages/bookselection.dart';
-import 'package:lingo_tales/pages/home_page.dart';
+import 'package:lingo_tales/pages/bookSelection.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
