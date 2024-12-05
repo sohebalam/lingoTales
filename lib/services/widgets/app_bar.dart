@@ -5,70 +5,40 @@ import 'package:lingo_tales/services/styles.dart';
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final Stream<bool> isLoggedInStream;
-  final EdgeInsetsGeometry? padding; // Optional argument for padding
-  const CustomAppBar({
-    super.key,
-    required this.title,
-    required this.isLoggedInStream,
-    this.padding,
-  });
+
+  CustomAppBar({required this.title, required this.isLoggedInStream});
+
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<bool>(
-      stream: isLoggedInStream,
-      initialData: false,
-      builder: (context, snapshot) {
-        if (snapshot.data == true) {
-          // User is logged in, display default AppBar
-          return AppBar(
-            title: Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20.0,
+    return AppBar(
+      backgroundColor: Colors.white, // Set the background color to white
+      elevation: 0, // Remove shadow for a clean look
+      title: Text(
+        title,
+        style: TextStyle(
+          color: Colors.black, // Set text color to black for contrast
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      actions: [
+        StreamBuilder<bool>(
+          stream: isLoggedInStream,
+          builder: (context, snapshot) {
+            return IconButton(
+              icon: Icon(
+                snapshot.data == true ? Icons.exit_to_app : Icons.login,
+                color: Colors.black, // Set icon color to black
               ),
-            ),
-            centerTitle: true,
-            backgroundColor: AppColors.primaryColor,
-            actions: <Widget>[
-              IconButton(
-                icon: const Icon(Icons.logout),
-                onPressed: () {
-                  disconnect();
-                },
-              ),
-            ],
-          );
-        } else {
-          // User is logged out, apply padding
-          return AppBar(
-            title: Padding(
-              padding: padding ?? EdgeInsets.zero,
-              child: Text(
-                title,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20.0,
-                ),
-              ),
-            ),
-            centerTitle: true,
-            backgroundColor: AppColors.primaryColor,
-            actions: null,
-          );
-        }
-      },
+              onPressed: () {
+                // Handle login/logout functionality here
+              },
+            );
+          },
+        ),
+      ],
     );
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
-}
-
-final _auth = FirebaseAuth.instance;
-Future<void> disconnect() async {
-// User? get user => _auth.currentUser;
-  await _auth.signOut();
+  Size get preferredSize => Size.fromHeight(kToolbarHeight);
 }

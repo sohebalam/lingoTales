@@ -19,6 +19,7 @@ class _BookPagesPageState extends State<BookPagesPage> {
   List<Map<String, dynamic>> pages = [];
   int currentPage = 0;
   bool isLoading = true;
+  String bookTitle = ''; // Variable to store the book title
 
   @override
   void initState() {
@@ -29,7 +30,7 @@ class _BookPagesPageState extends State<BookPagesPage> {
   // Fetch pages from Firestore
   Future<void> fetchPages() async {
     try {
-      // Fetch the book details first to get the page IDs
+      // Fetch the book details first to get the page IDs and title
       final bookSnapshot = await FirebaseFirestore.instance
           .collection('books')
           .doc(widget.bookId)
@@ -41,6 +42,9 @@ class _BookPagesPageState extends State<BookPagesPage> {
         });
         return;
       }
+
+      // Fetch the book title
+      bookTitle = bookSnapshot.data()?['name'] ?? 'No title'; // Get the title
 
       // Get the page IDs from the book document
       final pageIds = List<String>.from(bookSnapshot.data()?['pages'] ?? []);
@@ -70,20 +74,18 @@ class _BookPagesPageState extends State<BookPagesPage> {
         String translatedText = text; // Default to the original text
 
         if (translations.isNotEmpty) {
-          // Assuming you want to get the translation in Arabic for example
           final arabicTranslation = translations.firstWhere(
               (translation) => translation['language'] == 'arabic',
               orElse: () => null);
           if (arabicTranslation != null) {
-            translatedText = arabicTranslation['text'] ??
-                text; // Use Arabic translation if available
+            translatedText = arabicTranslation['text'] ?? text;
           }
         }
 
         return {
           'id': doc.id,
-          'image': picture, // Fallback to an empty string if picture is null
-          'text': translatedText, // Use translated text or default text
+          'image': picture,
+          'text': translatedText,
         };
       }).toList();
 
@@ -116,7 +118,8 @@ class _BookPagesPageState extends State<BookPagesPage> {
     if (isLoading) {
       return Scaffold(
         appBar: CustomAppBar(
-          title: 'Book Pages',
+          title:
+              'Loading...', // Show "Loading..." while the data is being fetched
           isLoggedInStream: isLoggedInStream,
         ),
         body: const Center(child: CircularProgressIndicator()),
@@ -126,7 +129,8 @@ class _BookPagesPageState extends State<BookPagesPage> {
     if (pages.isEmpty) {
       return Scaffold(
         appBar: CustomAppBar(
-          title: 'Book Pages',
+          title:
+              'No pages available', // Handle the case where there are no pages
           isLoggedInStream: isLoggedInStream,
         ),
         body: const Center(child: Text('No pages available for this book.')),
@@ -136,37 +140,34 @@ class _BookPagesPageState extends State<BookPagesPage> {
     final page = pages[currentPage];
     final isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
-    final isFrontPage = currentPage == 0; // Check if it's the front page
+    final isFrontPage = currentPage == 0;
 
     return Scaffold(
       appBar: CustomAppBar(
-        title: 'Book Pages',
+        title: bookTitle.isEmpty
+            ? 'Book Pages'
+            : bookTitle, // Display book title dynamically
         isLoggedInStream: isLoggedInStream,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Center(
           child: isFrontPage
-              ? // If it's the front page, display the image fullscreen
-              Image.network(
+              ? Image.network(
                   page['image'],
                   fit: BoxFit.cover,
                   width: double.infinity,
                   height: double.infinity,
                 )
-              : // Otherwise, display image with text on the side
-              isLandscape
+              : isLandscape
                   ? Row(
                       children: [
-                        // Image on the left
                         Expanded(
                           flex: 1,
                           child: page['image'] != '' && page['image'] != null
                               ? Image.network(page['image'], fit: BoxFit.cover)
-                              : Image.asset(
-                                  'assets/fallback_image.jpeg'), // Fallback image
+                              : Image.asset('assets/fallback_image.jpeg'),
                         ),
-                        // Text on the right
                         Expanded(
                           flex: 1,
                           child: Center(
@@ -187,19 +188,13 @@ class _BookPagesPageState extends State<BookPagesPage> {
                     )
                   : Column(
                       children: [
-                        // Image on top
                         Expanded(
                           flex: 1,
                           child: page['image'] != '' && page['image'] != null
-                              ? Image.network(
-                                  page['image'],
-                                  fit: BoxFit.cover,
-                                  width: double.infinity,
-                                )
-                              : Image.asset(
-                                  'assets/fallback_image.jpeg'), // Fallback image
+                              ? Image.network(page['image'],
+                                  fit: BoxFit.cover, width: double.infinity)
+                              : Image.asset('assets/fallback_image.jpeg'),
                         ),
-                        // Text on the bottom
                         Expanded(
                           flex: 1,
                           child: Center(
@@ -220,7 +215,6 @@ class _BookPagesPageState extends State<BookPagesPage> {
                     ),
         ),
       ),
-      // Navigation arrows
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
         child: Row(
