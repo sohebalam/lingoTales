@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:lingo_tales/pages/auth/authservice.dart';
 import 'package:lingo_tales/pages/auth/login_page.dart';
+import 'package:lingo_tales/pages/bookselection.dart';
 import 'package:lingo_tales/pages/home_page.dart';
 
 class MainPage extends StatefulWidget {
@@ -24,7 +25,7 @@ class _MainPageState extends State<MainPage> {
           );
         } else if (snapshot.hasData) {
           // If user is logged in, navigate to HomePage
-          return HomePage();
+          return DisplayLevelsWithBooks();
         } else {
           // If user is not logged in, navigate to LoginPage
           return LoginPage();
