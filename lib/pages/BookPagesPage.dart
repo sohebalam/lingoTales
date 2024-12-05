@@ -136,6 +136,7 @@ class _BookPagesPageState extends State<BookPagesPage> {
     final page = pages[currentPage];
     final isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
+    final isFrontPage = currentPage == 0; // Check if it's the front page
 
     return Scaffold(
       appBar: CustomAppBar(
@@ -145,66 +146,78 @@ class _BookPagesPageState extends State<BookPagesPage> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Center(
-          child: isLandscape
-              ? Row(
-                  children: [
-                    // Image on the left
-                    Expanded(
-                      flex: 1,
-                      child: page['image'] != '' && page['image'] != null
-                          ? Image.network(page['image'], fit: BoxFit.cover)
-                          : Image.asset(
-                              'assets/fallback_image.jpeg'), // Fallback image
-                    ),
-                    // Text on the right
-                    Expanded(
-                      flex: 1,
-                      child: Center(
-                        child: Text(
-                          page['text'] != ''
-                              ? page['text']
-                              : 'No text available for this page.',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontStyle: FontStyle.italic,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+          child: isFrontPage
+              ? // If it's the front page, display the image fullscreen
+              Image.network(
+                  page['image'],
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: double.infinity,
                 )
-              : Column(
-                  children: [
-                    // Image on top
-                    Expanded(
-                      flex: 1,
-                      child: page['image'] != '' && page['image'] != null
-                          ? Image.network(page['image'],
-                              fit: BoxFit.cover, width: double.infinity)
-                          : Image.asset(
-                              'assets/fallback_image.jpeg'), // Fallback image
-                    ),
-                    // Text on the bottom
-                    Expanded(
-                      flex: 1,
-                      child: Center(
-                        child: Text(
-                          page['text'] != ''
-                              ? page['text']
-                              : 'No text available for this page.',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontStyle: FontStyle.italic,
-                            color: Colors.black87,
+              : // Otherwise, display image with text on the side
+              isLandscape
+                  ? Row(
+                      children: [
+                        // Image on the left
+                        Expanded(
+                          flex: 1,
+                          child: page['image'] != '' && page['image'] != null
+                              ? Image.network(page['image'], fit: BoxFit.cover)
+                              : Image.asset(
+                                  'assets/fallback_image.jpeg'), // Fallback image
+                        ),
+                        // Text on the right
+                        Expanded(
+                          flex: 1,
+                          child: Center(
+                            child: Text(
+                              page['text'] != ''
+                                  ? page['text']
+                                  : 'No text available for this page.',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontStyle: FontStyle.italic,
+                                color: Colors.black87,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                      ],
+                    )
+                  : Column(
+                      children: [
+                        // Image on top
+                        Expanded(
+                          flex: 1,
+                          child: page['image'] != '' && page['image'] != null
+                              ? Image.network(
+                                  page['image'],
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                )
+                              : Image.asset(
+                                  'assets/fallback_image.jpeg'), // Fallback image
+                        ),
+                        // Text on the bottom
+                        Expanded(
+                          flex: 1,
+                          child: Center(
+                            child: Text(
+                              page['text'] != ''
+                                  ? page['text']
+                                  : 'No text available for this page.',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontStyle: FontStyle.italic,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
         ),
       ),
       // Navigation arrows
