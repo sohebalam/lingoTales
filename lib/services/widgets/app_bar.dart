@@ -18,7 +18,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: Text(title),
+      title: Text(title, style: TextStyle(color: AppColors.primaryColor)),
+      iconTheme: IconThemeData(color: AppColors.primaryColor),
       actions: [
         StreamBuilder<bool>(
           stream: isLoggedInStream,

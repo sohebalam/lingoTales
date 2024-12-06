@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:lingo_tales/services/styles.dart';
 import 'package:lingo_tales/services/widgets/app_bar.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:skeleton_loader/skeleton_loader.dart'; // Import the skeleton loader package
 
 class BookPagesPage extends StatefulWidget {
   final String bookId;
@@ -31,7 +33,6 @@ class _BookPagesPageState extends State<BookPagesPage> {
 
   Future<void> fetchPages() async {
     try {
-      // Fetch the book details first to get the page IDs
       final bookSnapshot = await FirebaseFirestore.instance
           .collection('books')
           .doc(widget.bookId)
@@ -44,7 +45,6 @@ class _BookPagesPageState extends State<BookPagesPage> {
         return;
       }
       bookTitle = bookSnapshot.data()?['name'] ?? 'No title';
-      // Get the page IDs from the book document
       final pageIds = List<String>.from(bookSnapshot.data()?['pages'] ?? []);
 
       if (pageIds.isEmpty) {
@@ -54,7 +54,6 @@ class _BookPagesPageState extends State<BookPagesPage> {
         return;
       }
 
-      // Fetch the pages from the 'pages' collection using the page IDs
       final pagesSnapshot = await FirebaseFirestore.instance
           .collection('pages')
           .where(FieldPath.documentId, whereIn: pageIds)
@@ -62,32 +61,25 @@ class _BookPagesPageState extends State<BookPagesPage> {
 
       final pagesData = pagesSnapshot.docs.map((doc) {
         final data = doc.data();
-
-        // Ensure all fields are not null and provide fallbacks if needed
-        final picture = data['picture'] ?? ''; // Fallback for picture
-        final text = data['text'] ?? ''; // Fallback for text
+        final picture = data['picture'] ?? '';
+        final text = data['text'] ?? '';
         final translations = data['translations'] ?? [];
 
-        // Initialize translatedText with the default text
         String translatedText = text;
-
-        // Check for Arabic translation in the translations array
         if (translations.isNotEmpty) {
           final arabicTranslation = translations.firstWhere(
               (translation) => translation['language'] == 'arabic',
               orElse: () => null);
 
           if (arabicTranslation != null) {
-            translatedText = arabicTranslation['text'] ??
-                text; // Use Arabic translation if available
+            translatedText = arabicTranslation['text'] ?? text;
           }
         }
 
         return {
           'id': doc.id,
           'image': picture,
-          'text':
-              translatedText, // Use translated text (either original or Arabic)
+          'text': translatedText,
         };
       }).toList();
 
@@ -128,7 +120,25 @@ class _BookPagesPageState extends State<BookPagesPage> {
                   .authStateChanges()
                   .map((user) => user != null), // Pass the stream
             ),
-            body: const Center(child: CircularProgressIndicator()),
+            body: SkeletonLoader(
+              // Replace CircularProgressIndicator with SkeletonLoader
+              builder: Shimmer.fromColors(
+                baseColor: Colors.grey[300]!,
+                highlightColor: Colors.grey[100]!,
+                child: Column(
+                  children: List.generate(
+                      5,
+                      (index) => Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Container(
+                              height: 20.0,
+                              width: double.infinity,
+                              color: Colors.grey,
+                            ),
+                          )),
+                ),
+              ),
+            ),
           );
         }
 
@@ -145,7 +155,6 @@ class _BookPagesPageState extends State<BookPagesPage> {
           return SizedBox(); // Return an empty widget while navigating
         }
 
-        // If not loading and data exists
         if (isLoading) {
           return Scaffold(
             appBar: CustomAppBar(
@@ -154,7 +163,25 @@ class _BookPagesPageState extends State<BookPagesPage> {
                   .authStateChanges()
                   .map((user) => user != null), // Pass the stream
             ),
-            body: const Center(child: CircularProgressIndicator()),
+            body: SkeletonLoader(
+              // Use skeleton loader during data loading
+              builder: Shimmer.fromColors(
+                baseColor: Colors.grey[300]!,
+                highlightColor: Colors.grey[100]!,
+                child: Column(
+                  children: List.generate(
+                      5,
+                      (index) => Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Container(
+                              height: 20.0,
+                              width: double.infinity,
+                              color: Colors.grey,
+                            ),
+                          )),
+                ),
+              ),
+            ),
           );
         }
 

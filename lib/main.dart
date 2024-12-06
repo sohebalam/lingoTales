@@ -18,6 +18,7 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => AuthProvider(),
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         title: 'Lingo Tales',
         theme: ThemeData(primarySwatch: Colors.blue),
         // Listen to AuthProvider state for login status
