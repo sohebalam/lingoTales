@@ -1,6 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:lingo_tales/services/styles.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // The Firebase AuthProvider
+import 'package:lingo_tales/pages/auth/authprovider.dart'
+    as custom_auth_provider;
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -9,36 +13,31 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   CustomAppBar({required this.title, required this.isLoggedInStream});
 
   @override
+  Size get preferredSize => const Size.fromHeight(56.0);
+
+  @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: Colors.white, // Set the background color to white
-      elevation: 0, // Remove shadow for a clean look
-      title: Text(
-        title,
-        style: TextStyle(
-          color: Colors.black, // Set text color to black for contrast
-          fontWeight: FontWeight.bold,
-        ),
-      ),
+      title: Text(title),
       actions: [
         StreamBuilder<bool>(
           stream: isLoggedInStream,
           builder: (context, snapshot) {
-            return IconButton(
-              icon: Icon(
-                snapshot.data == true ? Icons.exit_to_app : Icons.login,
-                color: Colors.black, // Set icon color to black
-              ),
-              onPressed: () {
-                // Handle login/logout functionality here
-              },
-            );
+            if (snapshot.hasData && snapshot.data!) {
+              return IconButton(
+                icon: const Icon(Icons.exit_to_app),
+                onPressed: () async {
+                  // Log out the user
+                  await FirebaseAuth.instance.signOut();
+                  Navigator.pushReplacementNamed(context, '/login');
+                },
+              );
+            } else {
+              return SizedBox();
+            }
           },
         ),
       ],
     );
   }
-
-  @override
-  Size get preferredSize => Size.fromHeight(kToolbarHeight);
 }

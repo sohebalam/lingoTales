@@ -1,6 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:lingo_tales/pages/auth/authservice.dart';
 import 'package:lingo_tales/pages/bookPagesPage.dart';
+import 'package:lingo_tales/services/widgets/app_bar.dart';
 
 class DisplayLevelsWithBooks extends StatefulWidget {
   @override
@@ -10,6 +13,9 @@ class DisplayLevelsWithBooks extends StatefulWidget {
 class _DisplayLevelsWithBooksState extends State<DisplayLevelsWithBooks> {
   List<Map<String, dynamic>> levels = [];
   bool isLoading = false;
+  final AuthService _authService = AuthService();
+  final Stream<bool> isLoggedInStream =
+      FirebaseAuth.instance.authStateChanges().map((user) => user != null);
 
   @override
   void initState() {
@@ -79,8 +85,9 @@ class _DisplayLevelsWithBooksState extends State<DisplayLevelsWithBooks> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Levels with Books'),
+      appBar: CustomAppBar(
+        title: 'Levels with Books',
+        isLoggedInStream: isLoggedInStream,
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
