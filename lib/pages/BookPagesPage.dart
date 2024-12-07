@@ -39,18 +39,22 @@ class _BookPagesPageState extends State<BookPagesPage> {
           .get();
 
       if (!bookSnapshot.exists) {
-        setState(() {
-          isLoading = false;
-        });
+        print("Book not found");
+        setState(() => isLoading = false);
         return;
       }
-      bookTitle = bookSnapshot.data()?['name'] ?? 'No title';
-      final pageIds = List<String>.from(bookSnapshot.data()?['pages'] ?? []);
+
+      print("Book data: ${bookSnapshot.data()}");
+      final rawPages = bookSnapshot.data()?['pages'];
+      print("Raw pages field: $rawPages");
+
+      final pageIds = rawPages is List
+          ? List<String>.from(rawPages.map((e) => e.toString()))
+          : [];
 
       if (pageIds.isEmpty) {
-        setState(() {
-          isLoading = false;
-        });
+        print("No pages found for the book.");
+        setState(() => isLoading = false);
         return;
       }
 
@@ -59,27 +63,14 @@ class _BookPagesPageState extends State<BookPagesPage> {
           .where(FieldPath.documentId, whereIn: pageIds)
           .get();
 
+      print("Fetched pages: ${pagesSnapshot.docs}");
       final pagesData = pagesSnapshot.docs.map((doc) {
         final data = doc.data();
-        final picture = data['picture'] ?? '';
-        final text = data['text'] ?? '';
-        final translations = data['translations'] ?? [];
-
-        String translatedText = text;
-        if (translations.isNotEmpty) {
-          final arabicTranslation = translations.firstWhere(
-              (translation) => translation['language'] == 'arabic',
-              orElse: () => null);
-
-          if (arabicTranslation != null) {
-            translatedText = arabicTranslation['text'] ?? text;
-          }
-        }
-
+        print("Page data for ${doc.id}: $data");
         return {
           'id': doc.id,
-          'image': picture,
-          'text': translatedText,
+          'image': data['picture'] ?? '',
+          'text': data['text'] ?? '',
         };
       }).toList();
 
@@ -89,9 +80,7 @@ class _BookPagesPageState extends State<BookPagesPage> {
       });
     } catch (e) {
       print("Error fetching pages: $e");
-      setState(() {
-        isLoading = false;
-      });
+      setState(() => isLoading = false);
     }
   }
 
